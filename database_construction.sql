@@ -82,6 +82,8 @@ tiempo_duracion int,
 hora_salida_solicitud DATE,
 hora_regreso_solicitud DATE,
 estado_solicitud varchar(15) NOT NULL,
+updated_At varchar(100) NOT NULL,
+deleted_At varchar(100) NOT NULL,
 id_Equipo int,
 id_Mantenimiento int,
 id_Usuario int,
@@ -90,4 +92,3 @@ FOREIGN KEY (id_Equipo) REFERENCES Equipos(idEquipo),
 FOREIGN KEY (id_Mantenimiento) REFERENCES Mantenimientos(idMantenimiento),
 FOREIGN KEY (id_Usuario) REFERENCES Usuarios(idUsuario)
 );
-
