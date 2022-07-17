@@ -70,7 +70,6 @@ app.post("/create/solicitud", (req, res) => {
 			hour_exit_request: req.body.hour_exit_request || "",
 			hour_comeback_request: req.body.hour_comeback_request || "",
 			state: req.body.state,
-			created_At: date || "",
 			updated_At: req.body.updated_At || "",
 			deleted_At: req.body.deleted_At || "",
 		};
