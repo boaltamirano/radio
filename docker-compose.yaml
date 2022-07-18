@@ -57,6 +57,20 @@ services:
   depends_on:
    - dbRadio
 
+ solicitudes:
+  container_name: solicitudes
+  build:
+   context: ./Solicitudes
+   dockerfile: Dockerfile
+  command: bash -c 'while !</dev/tcp/dbRadio/3306; do sleep 1; done; npm start'
+  restart: on-failure
+  ports:
+   - 8006:8006
+  networks:
+   - radio
+  depends_on:
+   - dbRadio
+
  dbRadio:
   container_name: dbRadio
   image: mysql
