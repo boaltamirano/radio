@@ -13,6 +13,20 @@ USE vinculacion;
   PRIMARY KEY (idUsuario)
 );
 
+USE vinculacion;
+ CREATE TABLE usuarios (
+  idUsuario int NOT NULL AUTO_INCREMENT,
+  username varchar(100) NOT NULL,
+  name_user varchar(100) NOT NULL,
+  email varchar(100) NOT NULL,
+  rol varchar(20) NOT NULL,
+  area varchar(20) NOT NULL,
+  password varchar(100) NOT NULL,
+  created_At varchar(100) NOT NULL,
+  updated_At varchar(100) NOT NULL,
+  deleted_At varchar(100) NOT NULL,
+  PRIMARY KEY (idUsuario)
+);
 CREATE TABLE equipos (
 idEquipo int NOT NULL AUTO_INCREMENT,
 name_equipment varchar(100) NOT NULL,
@@ -49,7 +63,7 @@ CREATE TABLE componentes(
   updated_At varchar(100) NOT NULL,
   deleted_At varchar(100) NOT NULL,
   PRIMARY KEY (idComponente),
-  FOREIGN KEY (id_equipo)REFERENCES Equipos(idEquipo)
+  FOREIGN KEY (id_equipo)REFERENCES equipos(idEquipo)
 );
 
 CREATE TABLE mantenimientos (
@@ -68,7 +82,7 @@ created_At varchar(100) NOT NULL,
 updated_At varchar(100) NOT NULL,
 deleted_At varchar(100) NOT NULL,
 PRIMARY KEY (idMantenimiento),
-FOREIGN KEY (id_Equipo) REFERENCES Equipos(idEquipo)
+FOREIGN KEY (id_Equipo) REFERENCES equipos(idEquipo)
 );
 
 CREATE TABLE solicitudes (
@@ -88,7 +102,7 @@ id_Equipo int,
 id_Mantenimiento int,
 id_Usuario int,
 PRIMARY KEY(idSolicitud),
-FOREIGN KEY (id_Equipo) REFERENCES Equipos(idEquipo),
-FOREIGN KEY (id_Mantenimiento) REFERENCES Mantenimientos(idMantenimiento),
-FOREIGN KEY (id_Usuario) REFERENCES Usuarios(idUsuario)
+FOREIGN KEY (id_Equipo) REFERENCES equipos(idEquipo),
+FOREIGN KEY (id_Mantenimiento) REFERENCES mantenimientos(idMantenimiento),
+FOREIGN KEY (id_Usuario) REFERENCES usuarios(idUsuario)
 );

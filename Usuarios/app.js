@@ -113,7 +113,7 @@ app.delete('/delete/users/:id', (req, res) => {
 
 
 connection.connect(error => {
-  if (error) return res.status(400).send(error);
+  if (error) throw error;
   console.log('Database server running!');
 });
 
