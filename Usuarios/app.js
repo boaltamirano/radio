@@ -4,7 +4,7 @@ const mysql = require("mysql");
 const bcrypt = require("bcryptjs");
 const PORT = process.env.PORT || 8002;
 const app = express();
-const { check } = require("express-validator");
+const { check, header, param } = require("express-validator");
 const { v4: uuidv4 } = require("uuid");
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
@@ -135,19 +135,29 @@ app.post(
 	}
 );
 
-app.delete("/delete/users/:id", (req, res) => {
-	try {
-		const { id } = req.params;
-		const sql = `DELETE FROM usuarios WHERE id= ${id}`;
+app.delete(
+	"/delete/users/:id",
+	[
+		param("id", "El id del usuario a eliminar debe ser enviado.").exists(),
+		header("rol", "El Usuario no tiene permisos para realizar esto.").isIn([
+			"ADMINISTRADOR",
+		]),
+		validarCampos,
+	],
+	(req, res) => {
+		try {
+			const { id } = req.params;
+			const sql = `DELETE FROM usuarios WHERE idUsuario= ${id}`;
 
-		connection.query(sql, (error) => {
-			if (error) return res.status(400).send(error);
-			res.send("Delete user");
-		});
-	} catch (error) {
-		return res.status(400).send(error);
+			connection.query(sql, (error) => {
+				if (error) return res.status(400).send(error);
+				res.send("Delete user");
+			});
+		} catch (error) {
+			return res.status(400).send(error);
+		}
 	}
-});
+);
 
 // app.put('/update/users/:id', (req, res) => {
 //   const { id } = req.params;
