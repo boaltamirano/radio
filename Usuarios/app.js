@@ -1,20 +1,38 @@
 const express = require("express");
 const bodyParser = require("body-parser");
+const mysql = require("mysql");
+const bcrypt = require("bcryptjs");
 const PORT = process.env.PORT || 8002;
 const app = express();
-const { connection } = require("./database/database");
 const { check } = require("express-validator");
 const { v4: uuidv4 } = require("uuid");
-
+app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
-//variables globales
-const date = new Date();
+//MySQL
+// MySql
+//const connection = mysql.createConnection({
+//	host: "dbRadio",
+//	user: "dbuser",
+//	password: "dbuser",
+//	database: "vinculacion",
+//});
+
+//trabajo local
+const connection = mysql.createConnection({
+	host: "localhost",
+	user: "root",
+	password: "",
+	database: "vinculacion",
+});
 
 //helpers
-const { esRoleValido } = require("./helpers/dbValidations");
+const { existeEmail } = require("./helpers/dbValidations.js");
 
 //middlewares
 const { validarCampos } = require("./middlewares/validateFields");
+//variables globales
+const date = new Date();
+
 //rutas
 app.get("/", (req, res) => {
 	res.json({ mensaje: "Welcome to my API!" });
@@ -44,7 +62,7 @@ app.get("/findById/:id", (req, res) => {
 			if (error) return res.status(400).send(error);
 
 			if (result.length > 0) {
-				res.json(result);
+				res.send(result);
 			} else {
 				res.send("Not result");
 			}
@@ -59,41 +77,55 @@ app.post(
 	[
 		check("username", "El nombre es olbigatorio --username").not().isEmpty(),
 		check("name_user", "El nombre es olbigatorio --name_user").not().isEmpty(),
+		//control email
+		check("email", "El correo no es válido").isEmail(),
+		/* check("email").custom((value, { req }) => {
+			const sql = `SELECT email FROM usuarios WHERE email=?`;
+			connection.query(sql, value, (err, data) => {
+				if (err) console.log(err);
+				if (data.length > 0) throw new Error("Email ya existe");
+			});
+		}), */
+		//control de roles
+		check("rol", "No es un rol válido").isIn(["USUARIO", "ADMINISTRADOR"]),
+		//control área
+		check("area", "El area no es valida").isIn([
+			"SECRETARIA",
+			"EDICION",
+			"GRABACION",
+			"MASTER AM",
+			"MASTER FM",
+		]),
+		//Requisitos password
 		check("password", "El password debe ser más de 6 caracteres").isLength({
 			min: 6,
 		}),
-		check("email", "El correo no es válido").isEmail(),
-		//control de roles
-		check("rol", "No es un rol válido").isIn(["USUARIO", "ADMINISTRADOR"]),
 		validarCampos,
 	],
 	(req, res) => {
 		try {
 			const sql = "INSERT INTO usuarios SET ?";
 
-			const username = req.body.username;
-			const email = req.body.email;
-			const rol = req.body.rol;
-			const area = req.body.area;
+			//encriptado de clave
 			const password = req.body.password;
-
-			//VALIDACIONES PARA USUARIOS
+			const salt = bcrypt.genSaltSync(10);
+			const hashPassword = bcrypt.hashSync(password, salt);
 
 			const customerObj = {
-				username: username || "",
-				name_user: req.body.name_user || "",
-				email: email || "",
-				rol: rol || "",
-				area: area || "",
-				password: req.body.password || "",
-				created_At: date || "",
+				username: req.body.username,
+				name_user: req.body.name_user,
+				email: req.body.email,
+				rol: req.body.rol,
+				area: req.body.area,
+				password: hashPassword,
+				created_At: date,
 				updated_At: req.body.updated_At || "",
 				deleted_At: req.body.deleted_At || "",
 			};
 
-			connection.query(sql, customerObj, (error) => {
+			connection.query(sql, customerObj, (error, data) => {
 				if (error) return res.status(400).send(error);
-				res.status(200).json({ mensaje: "User created!" });
+				res.status(200).json({ mensaje: "User created!", data: data.affectedRows });
 			});
 		} catch (error) {
 			return res
@@ -128,6 +160,7 @@ app.delete("/delete/users/:id", (req, res) => {
 //   });
 // });
 
+//MySQL Connect
 connection.connect((error) => {
 	if (error) throw error;
 	console.log("Database server running!");
