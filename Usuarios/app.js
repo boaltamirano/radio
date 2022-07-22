@@ -124,7 +124,7 @@ app.post(
 			};
 
 			connection.query(sql, customerObj, (error, data) => {
-				if (error) return res.status(400).send(error);
+				if (error) return res.status(400).json({mensaje:"No se pudo crear el usuario",error})
 				res.status(200).json({ mensaje: "User created!", data: data.affectedRows });
 			});
 		} catch (error) {
