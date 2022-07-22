@@ -10,23 +10,10 @@ USE vinculacion;
   created_At varchar(100) NOT NULL,
   updated_At varchar(100) NOT NULL,
   deleted_At varchar(100) NOT NULL,
+  UNIQUE(username,email),
   PRIMARY KEY (idUsuario)
 );
 
-USE vinculacion;
- CREATE TABLE usuarios (
-  idUsuario int NOT NULL AUTO_INCREMENT,
-  username varchar(100) NOT NULL,
-  name_user varchar(100) NOT NULL,
-  email varchar(100) NOT NULL,
-  rol varchar(20) NOT NULL,
-  area varchar(20) NOT NULL,
-  password varchar(100) NOT NULL,
-  created_At varchar(100) NOT NULL,
-  updated_At varchar(100) NOT NULL,
-  deleted_At varchar(100) NOT NULL,
-  PRIMARY KEY (idUsuario)
-);
 CREATE TABLE equipos (
 idEquipo int NOT NULL AUTO_INCREMENT,
 name_equipment varchar(100) NOT NULL,
@@ -46,6 +33,7 @@ cpu_priority varchar(100) NOT NULL,
 created_At varchar(100) NOT NULL,
 updated_At varchar(100) NOT NULL,
 deleted_At varchar(100) NOT NULL,
+UNIQUE(name_equipment),
 PRIMARY KEY (idEquipo)
 );
 
@@ -81,6 +69,7 @@ id_Equipo int,
 created_At varchar(100) NOT NULL,
 updated_At varchar(100) NOT NULL,
 deleted_At varchar(100) NOT NULL,
+UNIQUE(name_maintenance),
 PRIMARY KEY (idMantenimiento),
 FOREIGN KEY (id_Equipo) REFERENCES equipos(idEquipo)
 );
