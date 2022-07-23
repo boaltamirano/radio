@@ -10,6 +10,7 @@ USE vinculacion;
   created_At varchar(100) NOT NULL,
   updated_At varchar(100) NOT NULL,
   deleted_At varchar(100) NOT NULL,
+  UNIQUE(username,email),
   PRIMARY KEY (idUsuario)
 );
 
@@ -32,6 +33,7 @@ cpu_priority varchar(100) NOT NULL,
 created_At varchar(100) NOT NULL,
 updated_At varchar(100) NOT NULL,
 deleted_At varchar(100) NOT NULL,
+UNIQUE(name_equipment),
 PRIMARY KEY (idEquipo)
 );
 
@@ -49,7 +51,7 @@ CREATE TABLE componentes(
   updated_At varchar(100) NOT NULL,
   deleted_At varchar(100) NOT NULL,
   PRIMARY KEY (idComponente),
-  FOREIGN KEY (id_equipo)REFERENCES Equipos(idEquipo)
+  FOREIGN KEY (id_equipo)REFERENCES equipos(idEquipo)
 );
 
 CREATE TABLE mantenimientos (
@@ -67,8 +69,9 @@ id_Equipo int,
 created_At varchar(100) NOT NULL,
 updated_At varchar(100) NOT NULL,
 deleted_At varchar(100) NOT NULL,
+UNIQUE(name_maintenance),
 PRIMARY KEY (idMantenimiento),
-FOREIGN KEY (id_Equipo) REFERENCES Equipos(idEquipo)
+FOREIGN KEY (id_Equipo) REFERENCES equipos(idEquipo)
 );
 
 CREATE TABLE solicitudes (
@@ -88,7 +91,7 @@ id_Equipo int,
 id_Mantenimiento int,
 id_Usuario int,
 PRIMARY KEY(idSolicitud),
-FOREIGN KEY (id_Equipo) REFERENCES Equipos(idEquipo),
-FOREIGN KEY (id_Mantenimiento) REFERENCES Mantenimientos(idMantenimiento),
-FOREIGN KEY (id_Usuario) REFERENCES Usuarios(idUsuario)
+FOREIGN KEY (id_Equipo) REFERENCES equipos(idEquipo),
+FOREIGN KEY (id_Mantenimiento) REFERENCES mantenimientos(idMantenimiento),
+FOREIGN KEY (id_Usuario) REFERENCES usuarios(idUsuario)
 );

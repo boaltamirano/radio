@@ -1,7 +1,7 @@
 const express = require("express");
 const mysql = require("mysql");
 const bodyParser = require("body-parser");
-const PORT = process.env.PORT || 8002;
+const PORT = process.env.PORT || 8006;
 const app = express();
 const { v4: uuidv4 } = require("uuid");
 
@@ -98,7 +98,7 @@ app.delete("/delete/solicitud/:id", (req, res) => {
 });
 
 connection.connect((error) => {
-	if (error) return res.status(400).send(error);
+	if (error) throw error;
 	console.log("Database server running!");
 });
 
