@@ -19,7 +19,7 @@ const connection = mysql.createConnection({
 
 
 app.get('/', (req, res) => {
-  res.send('Welcome to my API!');
+  res.json({mensaje:'Welcome to my API'});
 });
 
 app.get('/find/equipment', (req, res) => {
