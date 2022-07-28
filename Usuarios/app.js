@@ -75,7 +75,9 @@ app.get("/findById/:id", (req, res) => {
 app.post(
 	"/create/users",
 	[
-		check("username", "El nombre es olbigatorio --username").not().isEmpty(),
+		check("username", "El nombre de usuario es olbigatorio --username")
+			.not()
+			.isEmpty(),
 		check("name_user", "El nombre es olbigatorio --name_user").not().isEmpty(),
 		//control email
 		check("email", "El correo no es válido").isEmail(),
@@ -124,13 +126,20 @@ app.post(
 			};
 
 			connection.query(sql, customerObj, (error, data) => {
-				if (error) return res.status(400).json({mensaje:"No se pudo crear el usuario",error})
-				res.status(200).json({ mensaje: "User created!", data: data.affectedRows });
+				if (error)
+					return res.status(400).json({
+						mensaje: "No se pudo crear el usuario",
+						error: error.sqlMessage,
+					});
+				res
+					.status(200)
+					.json({ mensaje: "Usuario creado", data: data.affectedRows });
 			});
 		} catch (error) {
-			return res
-				.status(400)
-				.json({ mensaje: "El Usuario no se pudo crear", error });
+			return res.status(400).json({
+				mensaje: "El Usuario no se pudo crear",
+				error,
+			});
 		}
 	}
 );
