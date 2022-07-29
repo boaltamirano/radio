@@ -54,7 +54,7 @@ app.get("/find/users", (req, res) => {
 	}
 });
 
-app.get("/findById/:id", (req, res) => {
+app.get("/findById/:id", [], (req, res) => {
 	try {
 		const { id } = req.params;
 		const sql = `SELECT * FROM usuarios WHERE id = ${id}`;
@@ -147,7 +147,9 @@ app.post(
 app.delete(
 	"/delete/users/:id",
 	[
-		param("id", "El id del usuario a eliminar debe ser enviado.").exists(),
+		param("id", "El id del usuario a eliminar debe ser enviado.").exists({
+			checkNull: true,
+		}),
 		header("rol", "El Usuario no tiene permisos para realizar esto.").isIn([
 			"ADMINISTRADOR",
 		]),
@@ -156,12 +158,35 @@ app.delete(
 	(req, res) => {
 		try {
 			const { id } = req.params;
-			const sql = `DELETE FROM usuarios WHERE idUsuario= ${id}`;
-
-			connection.query(sql, (error) => {
-				if (error) return res.status(400).send(error);
-				res.send("Delete user");
-			});
+			const number = /^[0-9]+$/;
+			//const result = number.test(id);
+			//console.log(result);
+			if (!number.test(id)) {
+				console.log("El id es equivocado");
+				return res.status(400).json({ mensaje: "El id es incorrecto" });
+			} else {
+				/*
+				 * *Primero hago una búsqueda del usuario si se encuentra en la base de datos
+				 */
+				sql = `SELECT * FROM usuarios WHERE idUsuario=${id}`;
+				connection.query(sql, (error, data) => {
+					if (error || data.length == 0)
+						return res.status(400).json({
+							mensaje: "El id no se encuentra en la base de datos",
+						});
+					/*
+					 * *Cuando el usuario es encontrado en la base de datos se procede a ingresar el sql para eliminarlo
+					 */
+					const sql = `DELETE FROM usuarios WHERE idUsuario= ${id}`;
+					connection.query(sql, (err, data) => {
+						if (err)
+							res
+								.status(400)
+								.json({ mensaje: "No se puede borrar", error: error.sqlMessage });
+						res.json({ mensaje: "Usuario borrado" });
+					});
+				});
+			}
 		} catch (error) {
 			return res.status(400).send(error);
 		}
