@@ -25,9 +25,6 @@ const connection = mysql.createConnection({
 	database: "vinculacion",
 });
 
-//helpers
-const { existeEmail } = require("./helpers/dbValidations.js");
-
 //middlewares
 const { validarCampos } = require("./middlewares/validateFields");
 //variables globales
@@ -38,39 +35,73 @@ app.get("/", (req, res) => {
 	res.json({ mensaje: "Welcome to my API!" });
 });
 
-app.get("/find/users", (req, res) => {
-	try {
-		const sql = "SELECT * FROM usuarios";
-		connection.query(sql, (error, results) => {
-			if (error) return res.status(400).send(error);
-			if (results.length > 0) {
-				return res.json(results);
-			} else {
-				return res.send("Not result");
-			}
-		});
-	} catch (error) {
-		return res.status(400).send(error);
+app.get(
+	"/find/users",
+	[
+		// !control de roles el usuario debe ser administrador
+		header("rol", "El Usuario no tiene permisos para realizar esto.").isIn([
+			"ADMINISTRADOR",
+		]),
+		// ?mensajes para ver el error
+		validarCampos,
+	],
+	(req, res) => {
+		try {
+			const sql = "SELECT * FROM usuarios";
+			connection.query(sql, (error, results) => {
+				if (error) return res.status(400).send(error);
+				if (results.length > 0) {
+					return res.status(200).json({ results });
+				} else {
+					return res
+						.status(400)
+						.json({ mensaje: "No se encontró usuarios en la base de datos" });
+				}
+			});
+		} catch (error) {
+			return res.status(400).json({ error });
+		}
 	}
-});
+);
 
-app.get("/findById/:id", [], (req, res) => {
-	try {
-		const { id } = req.params;
-		const sql = `SELECT * FROM usuarios WHERE id = ${id}`;
-		connection.query(sql, (error, result) => {
-			if (error) return res.status(400).send(error);
-
-			if (result.length > 0) {
-				res.send(result);
+app.get(
+	"/findById/:id",
+	[
+		// !control de roles el usuario debe ser administrador
+		header("rol", "El Usuario no tiene permisos para realizar esto.").isIn([
+			"ADMINISTRADOR",
+		]),
+		// ?mensajes para ver el error
+		validarCampos,
+	],
+	(req, res) => {
+		try {
+			const { id } = req.params;
+			const number = /^[0-9]+$/;
+			//const result = number.test(id);
+			//console.log(result);
+			if (!number.test(id)) {
+				// console.log("El id es equivocado");
+				return res.status(400).json({ mensaje: "El id es incorrecto" });
 			} else {
-				res.json("Not result");
+				const sql = `SELECT * FROM usuarios WHERE idUsuario = ${id}`;
+				connection.query(sql, (error, result) => {
+					if (error) return res.status(400).send(error);
+
+					if (result.length > 0) {
+						res.status(200).json({ result });
+					} else {
+						res
+							.status(400)
+							.json({ mensaje: `No se encontro el usuario con id ${id}` });
+					}
+				});
 			}
-		});
-	} catch (error) {
-		return res.status(400).send(error);
+		} catch (error) {
+			return res.status(400).json({ error });
+		}
 	}
-});
+);
 
 app.post(
 	"/create/users",
@@ -147,9 +178,6 @@ app.post(
 app.delete(
 	"/delete/users/:id",
 	[
-		param("id", "El id del usuario a eliminar debe ser enviado.").exists({
-			checkNull: true,
-		}),
 		header("rol", "El Usuario no tiene permisos para realizar esto.").isIn([
 			"ADMINISTRADOR",
 		]),
@@ -170,6 +198,7 @@ app.delete(
 				 */
 				sql = `SELECT * FROM usuarios WHERE idUsuario=${id}`;
 				connection.query(sql, (error, data) => {
+					// ? La condicional del if es para el error o para los resultados si es = a 0
 					if (error || data.length == 0)
 						return res.status(400).json({
 							mensaje: "El id no se encuentra en la base de datos",
@@ -188,7 +217,7 @@ app.delete(
 				});
 			}
 		} catch (error) {
-			return res.status(400).send(error);
+			return res.status(400).json({ mensaje: error });
 		}
 	}
 );
