@@ -8,6 +8,7 @@ const { check, header, param } = require("express-validator");
 const { v4: uuidv4 } = require("uuid");
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
+
 //MySQL
 // MySql
 //const connection = mysql.createConnection({
