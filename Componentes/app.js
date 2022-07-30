@@ -67,46 +67,106 @@ app.get("/findById/:id", (req, res) => {
 		const { id } = req.params;
 		const sql = `SELECT * FROM componentes WHERE idComponente = ${id}`;
 		connection.query(sql, (error, result) => {
-			if (error) return res.status(400).send(error.sqlMessage);
+			if (error) return res.status(400).json({ error: error.sqlMessage });
 
 			if (result.length > 0) {
-				res.json(result);
+				res.status(200).json({ result });
 			} else {
-				res.send("Not result");
+				res.status(400).json({
+					mensaje: `No se encontró ningún componente con id ${id} en la base de datos.`,
+				});
 			}
 		});
 	} catch (error) {
-		return res.status(400).send(error);
+		return res.status(400).json({ error });
 	}
 });
 
-app.post("/create/components", (req, res) => {
-	try {
-		const sql = "INSERT INTO componentes SET ?";
+app.post(
+	"/create/components",
+	[
+		//verifico si es administrador
+		header("rol", "El Usuario no tiene permisos para realizar esto.").isIn([
+			"ADMINISTRADOR",
+		]),
+		//control de nombre componente
+		check(
+			"component_name",
+			"El nombre del componente es olbigatorio. --component_name"
+		)
+			.not()
+			.isEmpty(),
+		//control de marca
+		check(
+			"component_brand",
+			"La marca del componente es obligatoria.  --component_brand"
+		)
+			.not()
+			.isEmpty(),
+		//control de serial
+		check(
+			"serial_number",
+			"El número de serie es incorrecto verifique de nuevo. --serial"
+		)
+			.not()
+			.isEmpty()
+			.isLength({
+				min: 8,
+			}),
+		//control de fecha de adquisicion
+		/* check("date_purchase", "Asegúrese que la fecha ingresada es correcta.")
+			.isISO8601()
+			.toDate(),
 
-		const customerObj = {
-			component_name: req.body.name_equipment || "",
-			processor: req.body.processor || "",
-			component_brand: req.body.component_brand || "",
-			component_area: req.body.component_area || "",
-			serial_number: req.body.serial_number || "",
-			date_purchase: req.body.date_purchase || "",
-			year_component: req.body.year_component || "",
-			component_priority: req.body.component_priority || "",
-			id_Equipo: req.body.id_Equipo || "",
-			created_At: date || "",
-			updated_At: req.body.updated_At || "",
-			deleted_At: req.body.deleted_At || "",
-		};
+		//control de año del equipo
+		check("year_component", "Verifique el año ingresado sea correcto.")
+			.isISO8601()
+			.toDate(), */
 
-		connection.query(sql, customerObj, (error) => {
-			if (error) return res.status(400).send(error);
-			res.send("User created!");
-		});
-	} catch (error) {
-		return res.status(400).send(error);
+		//control de prioridad
+		check(
+			"component_priority",
+			"La prioridod es incorrecta verifique nuevamente."
+		).isIn(["ALTA", "MEDIA", "BAJA"]),
+		//control área
+		check("component_area", "El area ingresada no es valida.").isIn([
+			"SECRETARIA",
+			"EDICION",
+			"GRABACION",
+			"MASTER AM",
+			"MASTER FM",
+		]),
+		validarCampos,
+	],
+	(req, res) => {
+		try {
+			const sql = "INSERT INTO componentes SET ?";
+
+			const customerObj = {
+				component_name: req.body.name_equipment,
+				component_brand: req.body.component_brand,
+				component_area: req.body.component_area,
+				serial_number: req.body.serial_number,
+				date_purchase: req.body.date_purchase || "",
+				year_component: req.body.year_component || "",
+				component_priority: req.body.component_priority,
+				id_Equipo: req.body.id_Equipo || "",
+				created_At: date,
+				updated_At: date,
+				deleted_At: req.body.deleted_At || "",
+			};
+
+			connection.query(sql, customerObj, (error, data) => {
+				if (error)
+					return res.status(400).json({ mensaje: "No se puede ingresar los datos" });
+				res.status(200),
+					json({ mensaje: "Componente creado", data: data.affectedRows });
+			});
+		} catch (error) {
+			return res.status(400).json({ error: "Algo salio mal ", error });
+		}
 	}
-});
+);
 
 app.delete("/delete/components/:id", (req, res) => {
 	try {
