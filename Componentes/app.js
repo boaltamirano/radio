@@ -135,41 +135,44 @@ app.post(
 	],
 	(req, res) => {
 		try {
-			// TODO: El select se lo puede cambiar para que busque en la tabla de equipos mas no en la de componentes
-			let sql = `SELECT * FROM componentes WHERE id_Equipo = ${req.body.id_Equipo}`;
+			// ? El select se lo puede cambiar para que busque en la tabla de equipos mas no en la de componentes
+			let sql = `SELECT * FROM equipos WHERE idEquipo = ${req.body.id_Equipo}`;
 
 			connection.query(sql, (error, data) => {
+				// ?error en la busqueda en la tabla de equipos
 				if (error)
 					return res.status(400).json({
-						mensaje: "No se puede ingresar los datos",
+						mensaje: "No se puede encontrar el equipo.",
 						error: error.sqlMessage,
 					});
 
-				sql = "INSERT INTO componentes SET ?";
-				const customerObj = {
-					component_name: req.body.component_name,
-					component_brand: req.body.component_brand,
-					component_area: req.body.component_area,
-					serial_number: req.body.serial_number,
-					date_purchase: req.body.date_purchase || "",
-					year_component: req.body.year_component || "",
-					component_priority: req.body.component_priority,
-					id_Equipo: req.body.id_Equipo,
-					created_At: date,
-					updated_At: date,
-					deleted_At: req.body.deleted_At || "",
-				};
-				if (data.length > 0)
+				if (data.length > 0) {
+					sql = "INSERT INTO componentes SET ?";
+					const customerObj = {
+						component_name: req.body.component_name,
+						component_brand: req.body.component_brand,
+						component_area: req.body.component_area,
+						serial_number: req.body.serial_number,
+						date_purchase: req.body.date_purchase || "",
+						year_component: req.body.year_component || "",
+						component_priority: req.body.component_priority,
+						id_Equipo: req.body.id_Equipo,
+						created_At: date,
+						updated_At: date,
+						deleted_At: req.body.deleted_At || "",
+					};
 					connection.query(sql, customerObj, (err, data) => {
+						// ? error en el ingreso a la tabla de componentes
 						if (err)
 							return res.status(400).json({
-								mensaje: "No se puede ingresar los datos",
+								mensaje: "No se puede ingresar los datos.",
 								error: error.sqlMessage,
 							});
 						res
 							.status(200)
 							.json({ mensaje: "Componente creado", data: data.affectedRows });
 					});
+				}
 			});
 		} catch (error) {
 			return res.status(500).json({ error: "Algo salio mal ", error });
@@ -187,7 +190,7 @@ app.delete("/delete/components/:id", (req, res) => {
 			res.send("Delete user");
 		});
 	} catch (error) {
-		return res.status(400).send(error);
+		return res.status(500).json(error);
 	}
 });
 
