@@ -135,43 +135,63 @@ app.post(
 	],
 	(req, res) => {
 		try {
-			// ? El select se lo puede cambiar para que busque en la tabla de equipos mas no en la de componentes
 			let sql = `SELECT * FROM equipos WHERE idEquipo = ${req.body.id_Equipo}`;
 
+			// ? Query de busqueda en la tabla de equipos con id de tabla de componentes
 			connection.query(sql, (error, data) => {
 				// ?error en la busqueda en la tabla de equipos
 				if (error)
 					return res.status(400).json({
 						mensaje: "No se puede encontrar el equipo.",
-						error: error.sqlMessage,
+						error,
 					});
-
+				// ? Query para saber si esque ya existe el componente
 				if (data.length > 0) {
-					sql = "INSERT INTO componentes SET ?";
-					const customerObj = {
-						component_name: req.body.component_name,
-						component_brand: req.body.component_brand,
-						component_area: req.body.component_area,
-						serial_number: req.body.serial_number,
-						date_purchase: req.body.date_purchase || "",
-						year_component: req.body.year_component || "",
-						component_priority: req.body.component_priority,
-						id_Equipo: req.body.id_Equipo,
-						created_At: date,
-						updated_At: date,
-						deleted_At: req.body.deleted_At || "",
-					};
-					connection.query(sql, customerObj, (err, data) => {
-						// ? error en el ingreso a la tabla de componentes
-						if (err)
-							return res.status(400).json({
-								mensaje: "No se puede ingresar los datos.",
-								error: error.sqlMessage,
+					sql =
+						"SELECT * FROM componentes WHERE component_name=? AND component_brand=? AND component_area=?";
+
+					connection.query(
+						sql,
+						[
+							req.body.component_name,
+							req.body.component_brand,
+							req.body.component_area,
+						],
+						(err, data) => {
+							// ? Mensaje para el componente ya exise
+							if (err || data.length > 0)
+								return res.status(400).json({
+									mensaje: "El componente ya existe.",
+									err,
+								});
+							//? Se inserta en la tabla de componentes el nuevo componente
+							let sql = "INSERT INTO componentes SET ?";
+							const customerObj = {
+								component_name: req.body.component_name,
+								component_brand: req.body.component_brand,
+								component_area: req.body.component_area,
+								serial_number: req.body.serial_number,
+								date_purchase: req.body.date_purchase,
+								year_component: req.body.year_component,
+								component_priority: req.body.component_priority,
+								id_Equipo: req.body.id_Equipo,
+								created_At: date,
+								updated_At: date,
+								deleted_At: req.body.deleted_At || "",
+							};
+							connection.query(sql, customerObj, (err, data) => {
+								// ? error en el ingreso a la tabla de componentes
+								if (err)
+									return res.status(400).json({
+										mensaje: "No se puede ingresar los datos.",
+										err,
+									});
+								res
+									.status(200)
+									.json({ mensaje: "Componente creado", data: data.affectedRows });
 							});
-						res
-							.status(200)
-							.json({ mensaje: "Componente creado", data: data.affectedRows });
-					});
+						}
+					);
 				}
 			});
 		} catch (error) {
