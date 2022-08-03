@@ -113,21 +113,6 @@ app.post(
 			.isLength({
 				min: 8,
 			}),
-		//control de fecha de adquisicion
-		/* check("date_purchase", "Asegúrese que la fecha ingresada es correcta.")
-			.isISO8601()
-			.toDate(),
-
-		//control de año del equipo
-		check("year_component", "Verifique el año ingresado sea correcto.")
-			.isISO8601()
-			.toDate(), */
-
-		//control de prioridad
-		check(
-			"component_priority",
-			"La prioridod es incorrecta verifique nuevamente."
-		).isIn(["ALTA", "MEDIA", "BAJA"]),
 		//control área
 		check("component_area", "El area ingresada no es valida.").isIn([
 			"SECRETARIA",
@@ -136,6 +121,15 @@ app.post(
 			"MASTER AM",
 			"MASTER FM",
 		]),
+		//control de fecha de adquisicion
+		check("date_purchase", "El formato de fecha no es correcto").isDate(),
+		//control de año del equipo
+		check("year_component", "El formato de fecha no es correcto").isDate(),
+		//control de prioridad
+		check(
+			"component_priority",
+			"La prioridod es incorrecta verifique nuevamente."
+		).isIn(["ALTA", "MEDIA", "BAJA"]),
 		validarCampos,
 	],
 	(req, res) => {
