@@ -200,19 +200,45 @@ app.post(
 	}
 );
 
-app.delete("/delete/components/:id", (req, res) => {
-	try {
-		const { id } = req.params;
-		const sql = `DELETE FROM componentes WHERE id= ${id}`;
+app.delete(
+	"/delete/components/:id",
+	[
+		header("rol", "El Usuario no tiene permisos para realizar esto.").isIn([
+			"ADMINISTRADOR",
+		]),
+		validarCampos,
+	],
+	(req, res) => {
+		try {
+			const { id } = req.params;
+			const number = /^[0-9]+$/;
+			//const result = number.test(id);
+			//console.log(result);
+			if (!number.test(id)) {
+				console.log("El id es equivocado");
+				return res.status(400).json({ mensaje: "El id es incorrecto" });
+			} else {
+				sql = `SELECT * FROM componentes WHERE idComponente=${id}`;
 
-		connection.query(sql, (error) => {
-			if (error) return res.status(400).send(error);
-			res.send("Delete user");
-		});
-	} catch (error) {
-		return res.status(500).json(error);
+				connection.query(sql, (error, data) => {
+					if (error || data.length == 0)
+						return res.status(400).json({
+							mensaje: `No se puede borrar el componente con id ${id} .`,
+							error,
+						});
+					// TODO: No se debe borrar se debe actualizar el deleted_at y cambiar el estado
+					sql = `DELETE FROM componentes WHERE idComponente= ${id}`;
+					connection.query(sql, (err) => {
+						if (err) res.status(400).json({ mensaje: "No se puede borrar", err });
+						res.status(200).json({ mensaje: "Usuario borrado" });
+					});
+				});
+			}
+		} catch (error) {
+			return res.status(500).json(error);
+		}
 	}
-});
+);
 
 // app.put('/update/users/:id', (req, res) => {
 //   const { id } = req.params;

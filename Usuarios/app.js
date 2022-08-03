@@ -207,13 +207,14 @@ app.delete(
 					/*
 					 * *Cuando el usuario es encontrado en la base de datos se procede a ingresar el sql para eliminarlo
 					 */
+					// TODO: No se debe borrar se debe actualizar el deleted_at y cambiar el estado
 					const sql = `DELETE FROM usuarios WHERE idUsuario= ${id}`;
 					connection.query(sql, (err, data) => {
 						if (err)
 							res
 								.status(400)
 								.json({ mensaje: "No se puede borrar", error: error.sqlMessage });
-						res.json({ mensaje: "Usuario borrado" });
+						res.status(200).json({ mensaje: "Usuario borrado" });
 					});
 				});
 			}
