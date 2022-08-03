@@ -26,7 +26,8 @@ const connection = mysql.createConnection({
 //middlewares
 
 const { validarCampos } = require("./middlewares/validateFields");
-
+//variables globales
+const date = new Date();
 //rutas
 app.get("/", (req, res) => {
 	res.json({ mensaje: "Welcome to my API! --Componentes" });
@@ -134,30 +135,44 @@ app.post(
 	],
 	(req, res) => {
 		try {
-			const sql = "INSERT INTO componentes SET ?";
+			// TODO: El select se lo puede cambiar para que busque en la tabla de equipos mas no en la de componentes
+			let sql = `SELECT * FROM componentes WHERE id_Equipo = ${req.body.id_Equipo}`;
 
-			const customerObj = {
-				component_name: req.body.name_equipment,
-				component_brand: req.body.component_brand,
-				component_area: req.body.component_area,
-				serial_number: req.body.serial_number,
-				date_purchase: req.body.date_purchase || "",
-				year_component: req.body.year_component || "",
-				component_priority: req.body.component_priority,
-				id_Equipo: req.body.id_Equipo || "",
-				created_At: date,
-				updated_At: date,
-				deleted_At: req.body.deleted_At || "",
-			};
-
-			connection.query(sql, customerObj, (error, data) => {
+			connection.query(sql, (error, data) => {
 				if (error)
-					return res.status(400).json({ mensaje: "No se puede ingresar los datos" });
-				res.status(200),
-					json({ mensaje: "Componente creado", data: data.affectedRows });
+					return res.status(400).json({
+						mensaje: "No se puede ingresar los datos",
+						error: error.sqlMessage,
+					});
+
+				sql = "INSERT INTO componentes SET ?";
+				const customerObj = {
+					component_name: req.body.component_name,
+					component_brand: req.body.component_brand,
+					component_area: req.body.component_area,
+					serial_number: req.body.serial_number,
+					date_purchase: req.body.date_purchase || "",
+					year_component: req.body.year_component || "",
+					component_priority: req.body.component_priority,
+					id_Equipo: req.body.id_Equipo,
+					created_At: date,
+					updated_At: date,
+					deleted_At: req.body.deleted_At || "",
+				};
+				if (data.length > 0)
+					connection.query(sql, customerObj, (err, data) => {
+						if (err)
+							return res.status(400).json({
+								mensaje: "No se puede ingresar los datos",
+								error: error.sqlMessage,
+							});
+						res
+							.status(200)
+							.json({ mensaje: "Componente creado", data: data.affectedRows });
+					});
 			});
 		} catch (error) {
-			return res.status(400).json({ error: "Algo salio mal ", error });
+			return res.status(500).json({ error: "Algo salio mal ", error });
 		}
 	}
 );
