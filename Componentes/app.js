@@ -45,8 +45,8 @@ app.get(
 	],
 	(req, res) => {
 		try {
-			const sql = "SELECT * FROM componentes";
-			connection.query(sql, (error, results) => {
+			const sql = `SELECT * FROM componentes WHERE state_component=?`;
+			connection.query(sql, [(state_component = "ACTIVE")], (error, results) => {
 				if (error)
 					return res
 						.status(400)
@@ -62,6 +62,8 @@ app.get(
 		}
 	}
 );
+
+// TODO: Realizar un Get para los componentes eliminados ñ
 
 app.get("/findById/:id", (req, res) => {
 	try {
