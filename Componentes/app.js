@@ -50,7 +50,7 @@ app.get(
 				if (error)
 					return res
 						.status(400)
-						.json({ mensaje: "La búsqueda no se pudo realizar", error });
+						.json({ mensaje: "La búsqueda no se pudo realizar.", error });
 				if (results.length > 0) {
 					return res.status(200).json({ results });
 				} else {
@@ -63,7 +63,7 @@ app.get(
 	}
 );
 
-// TODO: Realizar un Get para los componentes eliminados ñ
+// TODO: Realizar un Get para los componentes eliminados
 
 app.get("/findById/:id", (req, res) => {
 	try {
