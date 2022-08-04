@@ -174,6 +174,7 @@ app.post(
 								date_purchase: req.body.date_purchase,
 								year_component: req.body.year_component,
 								component_priority: req.body.component_priority,
+								state_component: req.body.state_component || "ACTIVE",
 								id_Equipo: req.body.id_Equipo,
 								created_At: date,
 								updated_At: date,
@@ -226,12 +227,18 @@ app.delete(
 							mensaje: `No se puede borrar el componente con id ${id} .`,
 							error,
 						});
-					// TODO: No se debe borrar se debe actualizar el deleted_at y cambiar el estado
-					sql = `DELETE FROM componentes WHERE idComponente= ${id}`;
-					connection.query(sql, (err) => {
-						if (err) res.status(400).json({ mensaje: "No se puede borrar", err });
-						res.status(200).json({ mensaje: "Usuario borrado" });
-					});
+					// ? No se debe borrar se debe actualizar el deleted_at y cambiar el estado
+					//sql = `DELETE FROM componentes WHERE idComponente= ${id}`;
+					sql = `UPDATE componentes SET deleted_At=?, state_component=? WHERE idComponente=${id}`;
+
+					connection.query(
+						sql,
+						[(deleted_At = date), (state_component = "INACTIVE")],
+						(err) => {
+							if (err) res.status(400).json({ mensaje: "No se puede borrar", err });
+							res.status(200).json({ mensaje: "Usuario borrado" });
+						}
+					);
 				});
 			}
 		} catch (error) {
