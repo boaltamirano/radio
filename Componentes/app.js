@@ -63,8 +63,6 @@ app.get(
 	}
 );
 
-// TODO: Realizar un Get para los componentes eliminados
-
 app.get(
 	"/findById/:id",
 	[
@@ -88,6 +86,37 @@ app.get(
 					res.status(400).json({
 						mensaje: `No se encontró ningún componente con id ${id} en la base de datos.`,
 					});
+				}
+			});
+		} catch (error) {
+			return res.status(400).json({ error });
+		}
+	}
+);
+
+// ? Get para los componentes eliminados
+app.get(
+	"/findDeleted",
+	[
+		// !control de roles el usuario debe ser administrador
+		header("rol", "El Usuario no tiene permisos para realizar esto.").isIn([
+			"ADMINISTRADOR",
+		]),
+		// ?mensajes para ver el error
+		validarCampos,
+	],
+	(req, res) => {
+		try {
+			const sql = `SELECT * FROM componentes WHERE state_component=?`;
+			connection.query(sql, [(state_component = "INACTIVE")], (error, results) => {
+				if (error)
+					return res
+						.status(400)
+						.json({ mensaje: "La búsqueda no se pudo realizar.", error });
+				if (results.length > 0) {
+					return res.status(200).json({ results });
+				} else {
+					return res.status(200).json({ mensaje: "No se encontraron componentes" });
 				}
 			});
 		} catch (error) {
