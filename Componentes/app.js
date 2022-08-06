@@ -76,7 +76,7 @@ app.get(
 	(req, res) => {
 		try {
 			const { id } = req.params;
-			const sql = `SELECT * FROM componentes WHERE idComponente = ${id}`;
+			const sql = `SELECT * FROM componentes WHERE idComponente = ${id} AND state_component="ACTIVE"`;
 			connection.query(sql, (error, result) => {
 				if (error) return res.status(400).json({ error: error.sqlMessage });
 
