@@ -33,7 +33,7 @@ const date = new Date();
 
 //rutas
 app.get("/", (req, res) => {
-	res.json({ mensaje: "Welcome to my API!" });
+	res.json({ mensaje: "Welcome to my API! --Usuarios" });
 });
 
 app.get(
@@ -48,7 +48,7 @@ app.get(
 	],
 	(req, res) => {
 		try {
-			const sql = "SELECT * FROM usuarios";
+			const sql = "SELECT * FROM usuarios WHERE state_user='ACTIVE'";
 			connection.query(sql, (error, results) => {
 				if (error) return res.status(400).send(error);
 				if (results.length > 0) {
@@ -56,7 +56,7 @@ app.get(
 				} else {
 					return res
 						.status(400)
-						.json({ mensaje: "No se encontró usuarios en la base de datos" });
+						.json({ mensaje: "No se encontró usuarios en la base de datos." });
 				}
 			});
 		} catch (error) {
@@ -85,7 +85,7 @@ app.get(
 				// console.log("El id es equivocado");
 				return res.status(400).json({ mensaje: "El id es incorrecto" });
 			} else {
-				const sql = `SELECT * FROM usuarios WHERE idUsuario = ${id}`;
+				const sql = `SELECT * FROM usuarios WHERE idUsuario = ${id} AND state_user="ACTIVE"`;
 				connection.query(sql, (error, result) => {
 					if (error) return res.status(400).send(error);
 
@@ -98,6 +98,37 @@ app.get(
 					}
 				});
 			}
+		} catch (error) {
+			return res.status(400).json({ error });
+		}
+	}
+);
+
+// ? Get para los usuarios eliminados
+app.get(
+	"/findDeleted",
+	[
+		// !control de roles el usuario debe ser administrador
+		header("rol", "El Usuario no tiene permisos para realizar esto.").isIn([
+			"ADMINISTRADOR",
+		]),
+		// ?mensajes para ver el error
+		validarCampos,
+	],
+	(req, res) => {
+		try {
+			const sql = `SELECT * FROM usuarios WHERE state_user=?`;
+			connection.query(sql, [(state_component = "INACTIVE")], (error, results) => {
+				if (error)
+					return res
+						.status(400)
+						.json({ mensaje: "La búsqueda no se pudo realizar.", error });
+				if (results.length > 0) {
+					return res.status(200).json({ results });
+				} else {
+					return res.status(200).json({ mensaje: "No se encontraron usuarios." });
+				}
+			});
 		} catch (error) {
 			return res.status(400).json({ error });
 		}
@@ -152,8 +183,9 @@ app.post(
 				rol: req.body.rol,
 				area: req.body.area,
 				password: hashPassword,
+				state_user: req.body.state_user || "ACTIVE",
 				created_At: date,
-				updated_At: req.body.updated_At || "",
+				updated_At: date,
 				deleted_At: req.body.deleted_At || "",
 			};
 
@@ -207,19 +239,21 @@ app.delete(
 					/*
 					 * *Cuando el usuario es encontrado en la base de datos se procede a ingresar el sql para eliminarlo
 					 */
-					// TODO: No se debe borrar se debe actualizar el deleted_at y cambiar el estado
-					const sql = `DELETE FROM usuarios WHERE idUsuario= ${id}`;
-					connection.query(sql, (err, data) => {
-						if (err)
-							res
-								.status(400)
-								.json({ mensaje: "No se puede borrar", error: error.sqlMessage });
-						res.status(200).json({ mensaje: "Usuario borrado" });
-					});
+					// ?No se debe borrar se debe actualizar el deleted_at y cambiar el estado
+					//const sql = `DELETE FROM usuarios WHERE idUsuario= ${id}`;
+					sql = `UPDATE usuarios SET deleted_At=?, state_user=? WHERE idUsuario=${id}`;
+					connection.query(
+						sql,
+						[(deleted_At = date), (state_user = "INACTIVE")],
+						(err) => {
+							if (err) res.status(400).json({ mensaje: "No se puede borrar", err });
+							res.status(200).json({ mensaje: "Usuario borrado" });
+						}
+					);
 				});
 			}
 		} catch (error) {
-			return res.status(400).json({ mensaje: error });
+			return res.status(500).json({ mensaje: error });
 		}
 	}
 );
