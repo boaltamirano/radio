@@ -65,25 +65,36 @@ app.get(
 
 // TODO: Realizar un Get para los componentes eliminados
 
-app.get("/findById/:id", (req, res) => {
-	try {
-		const { id } = req.params;
-		const sql = `SELECT * FROM componentes WHERE idComponente = ${id}`;
-		connection.query(sql, (error, result) => {
-			if (error) return res.status(400).json({ error: error.sqlMessage });
+app.get(
+	"/findById/:id",
+	[
+		// !control de roles el usuario debe ser administrador
+		header("rol", "El Usuario no tiene permisos para realizar esto.").isIn([
+			"ADMINISTRADOR",
+		]),
+		// ?mensajes para ver el error
+		validarCampos,
+	],
+	(req, res) => {
+		try {
+			const { id } = req.params;
+			const sql = `SELECT * FROM componentes WHERE idComponente = ${id}`;
+			connection.query(sql, (error, result) => {
+				if (error) return res.status(400).json({ error: error.sqlMessage });
 
-			if (result.length > 0) {
-				res.status(200).json({ result });
-			} else {
-				res.status(400).json({
-					mensaje: `No se encontró ningún componente con id ${id} en la base de datos.`,
-				});
-			}
-		});
-	} catch (error) {
-		return res.status(400).json({ error });
+				if (result.length > 0) {
+					res.status(200).json({ result });
+				} else {
+					res.status(400).json({
+						mensaje: `No se encontró ningún componente con id ${id} en la base de datos.`,
+					});
+				}
+			});
+		} catch (error) {
+			return res.status(400).json({ error });
+		}
 	}
-});
+);
 
 app.post(
 	"/create/components",
