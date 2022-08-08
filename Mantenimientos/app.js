@@ -34,21 +34,36 @@ app.get("/", (req, res) => {
 	res.status(200).json({ mensaje: "Welcome to my API!  --Mantenimiento" });
 });
 
-app.get("/find/maintenance", (req, res) => {
-	try {
-		const sql = "SELECT * FROM equipos";
-		connection.query(sql, (error, results) => {
-			if (error) return res.status(400).send(error);
-			if (results.length > 0) {
-				return res.json(results);
-			} else {
-				return res.send("Not result");
-			}
-		});
-	} catch (error) {
-		return res.status(400).send(error);
+app.get(
+	"/find/maintenance",
+	[
+		//validar q sea admin
+		header("rol", "El usuario no tiene permiso para realizar la acción.").isIn([
+			"ADMINISTRADOR",
+		]),
+		validarCampos,
+	],
+	(req, res) => {
+		try {
+			const sql = "SELECT * FROM mantenimientos";
+			connection.query(sql, (error, results) => {
+				if (error)
+					return res
+						.status(400)
+						.json({ mensaje: "No se puede mostrar los mantenimientos. " + error });
+				if (results.length > 0) {
+					return res.status(200).json({ results });
+				} else {
+					return res
+						.status(200)
+						.json({ mensaje: "No se han encontrado mantenimientos." });
+				}
+			});
+		} catch (error) {
+			return res.status(500).json({ error });
+		}
 	}
-});
+);
 
 app.get("/findByIdMaintenance/:id", (req, res) => {
 	try {
@@ -145,7 +160,6 @@ app.post(
 				id_Equipo: req.body.id_Equipo,
 				created_At: date,
 				updated_At: date,
-				deleted_At: req.body.deleted_At || "",
 			};
 
 			connection.query(sql, customerObj, (error) => {
