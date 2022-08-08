@@ -138,6 +138,9 @@ app.get(
 app.post(
 	"/create/users",
 	[
+		header("rol", "El Usuario no tiene permisos para realizar esto.").isIn([
+			"ADMINISTRADOR",
+		]),
 		check("username", "El nombre de usuario es olbigatorio --username")
 			.not()
 			.isEmpty(),
