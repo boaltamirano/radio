@@ -1,12 +1,12 @@
 const express = require("express");
-const mysql = require("mysql");
 const bodyParser = require("body-parser");
-const { header, check } = require("express-validator");
+const mysql = require("mysql");
 const PORT = process.env.PORT || 8005;
 const app = express();
+const { header, check } = require("express-validator");
 
+app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
-
 // MySql
 //const connection = mysql.createConnection({
 //  host: 'dbRadio',
@@ -24,7 +24,7 @@ const connection = mysql.createConnection({
 });
 
 //middlewares
-const { validarCampos } = "./middlewares/validateFields.js";
+const { validarCampos } = require("./middlewares/validateFields");
 
 // variables globales
 const date = new Date();
@@ -75,80 +75,90 @@ app.get("/findByIdMaintenance/:id", (req, res) => {
 app.post(
 	"/create/maintenance",
 	[
-		//verifico si es administrador
+		// control de roles el usuario debe ser administrador
 		header("rol", "El Usuario no tiene permisos para realizar esto.").isIn([
 			"ADMINISTRADOR",
 		]),
-		//control de nombre mantenimiento
-		check(
-			"name_maintenance",
-			"El nombre del mantenimiento es olbigatorio. --name_maintenance"
-		)
+		//name_maintenance
+		check("name_maintenance", "El nombre del mantenimiento es obligatorio.")
 			.not()
 			.isEmpty(),
-		//control de actividad
-		check("activity", "La actividad es obligatoria.  --activity").not().isEmpty(),
-		//control de partes
+		//activity
+		check("activity", "La actividad es obligatoria.").not().isEmpty(),
+		//parts
 		check("parts", "No es una parte válida.").isIn([
 			"TECLADOS",
 			"MONITORES",
 			"PARLANTES",
 			"MOUSE",
 			"CONSOLAS",
-			"MICROFONOS",
+			"MICRÓFONOS",
 			"CPU",
 			"SERVIDORES",
 			"IMPRESORAS",
 		]),
-		//control de frecuencia
-		check("frequency", "La frecuencia es obligatoria.")
-			.not()
-			.isEmpty()
-			.isInt({ min: 1, max: 12 }),
-		//control de prioridad
-		check("priority", "La prioridod es incorrecta verifique nuevamente.").isIn([
+		//frequency
+		check("frequency", "La frecuencia debe ir entre 1 y 12.").isInt({
+			min: 1,
+			max: 12,
+		}),
+		//priority
+		check("priority", "La prioridad es incorrecta.").isIn([
 			"ALTA",
 			"MEDIA",
 			"BAJA",
 		]),
-		//!control de responsable falta
-		check("responsible", "El responsable es necesario.").not().isEmpty(),
-		//control área
-		check("component_area", "El area ingresada no es valida.").isIn([
-			"SECRETARIA",
-			"EDICION",
-			"GRABACION",
-			"MASTER AM",
-			"MASTER FM",
-		]),
+		//responsible
+		check("responsible", "El responsalbe de la actividad es obligatorio.")
+			.not()
+			.isEmpty(),
+		//procedure_maintenance
+		check(
+			"procedure_maintenance",
+			"El procedimiento para la actividad es necesario."
+		)
+			.not()
+			.isEmpty(),
+		//days_stop
+		check("days_stop", "No es un día válido").isInt(),
+		//description_maintenance
+		check("description_maintenance", "La descripción es necesaria.")
+			.not()
+			.isEmpty(),
+		// mensajes para ver el error
 		validarCampos,
 	],
 	(req, res) => {
 		try {
-			const sql = "INSERT INTO equipos SET ?";
+			const sql = "INSERT INTO mantenimientos SET ?";
 
 			const customerObj = {
-				name_maintenance: req.body.name_maintenance || "",
-				activity: req.body.activity || "",
-				parts: req.body.parts || "",
-				frequency: req.body.frequency || "",
-				priority: req.body.priority || "",
-				responsible: req.body.responsible || "",
-				procedure_maintenance: req.body.procedure_maintenance || "",
-				days_stop: req.body.days_stop || "",
-				description_maintenance: req.body.description_maintenance || "",
-				id_Equipo: req.body.id_Equipo || "",
-				created_At: date || "",
-				updated_At: req.body.updated_At || "",
+				name_maintenance: req.body.name_maintenance,
+				activity: req.body.activity,
+				parts: req.body.parts,
+				frequency: req.body.frequency,
+				priority: req.body.priority,
+				responsible: req.body.responsible,
+				procedure_maintenance: req.body.procedure_maintenance,
+				days_stop: req.body.days_stop,
+				description_maintenance: req.body.description_maintenance,
+				id_Equipo: req.body.id_Equipo,
+				created_At: date,
+				updated_At: date,
 				deleted_At: req.body.deleted_At || "",
 			};
 
 			connection.query(sql, customerObj, (error) => {
-				if (error) return res.status(400).send(error);
-				res.send("User created!");
+				if (error)
+					return res
+						.status(400)
+						.json({ mensaje: "No se puede añadir el mantenimiento.", error });
+				res.status(200).json({ mensaje: "Mantenimiento creado correctamente." });
 			});
 		} catch (error) {
-			return res.status(400).send(error);
+			return res
+				.status(500)
+				.json({ mensaje: "No se ha podido realizar la operación. " + error });
 		}
 	}
 );
