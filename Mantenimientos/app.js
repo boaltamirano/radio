@@ -65,23 +65,40 @@ app.get(
 	}
 );
 
-app.get("/findByIdMaintenance/:id", (req, res) => {
-	try {
-		const { id } = req.params;
-		const sql = `SELECT * FROM equipos WHERE id = ${id}`;
-		connection.query(sql, (error, result) => {
-			if (error) return res.status(400).send(error);
+app.get(
+	"/findByIdMaintenance/:id",
+	[
+		//validar q sea admin
+		header("rol", "El usuario no tiene permiso para realizar la acción.").isIn([
+			"ADMINISTRADOR",
+		]),
+		validarCampos,
+	],
+	(req, res) => {
+		try {
+			const { id } = req.params;
+			const sql = `SELECT * FROM mantenimientos WHERE idMantenimiento = ${id}`;
+			connection.query(sql, (error, results) => {
+				if (error)
+					return res
+						.status(400)
+						.json({ mensaje: "No se pudo realizar la búsqueda. " + error });
 
-			if (result.length > 0) {
-				res.json(result);
-			} else {
-				res.send("Not result");
-			}
-		});
-	} catch (error) {
-		return res.status(400).send(error);
+				if (results.length > 0) {
+					res.status(200).json(results);
+				} else {
+					res
+						.status(400)
+						.json({ mensaje: `No se encontró ningún mantenimiento con id ${id}.` });
+				}
+			});
+		} catch (error) {
+			return res
+				.status(500)
+				.json({ mensaje: "No se pudo realizar la operación. " + error });
+		}
 	}
-});
+);
 
 //TODO: Get para mantenimientos eliminados
 //? El mantenimiento lo voy a tener o no borrado
