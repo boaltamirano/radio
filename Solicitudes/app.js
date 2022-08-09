@@ -3,39 +3,138 @@ const mysql = require("mysql");
 const bodyParser = require("body-parser");
 const PORT = process.env.PORT || 8006;
 const app = express();
-const { v4: uuidv4 } = require("uuid");
+const { header, check } = require("express-validator");
 
+app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 
-const date = new Date();
-
 // MySql
+//const connection = mysql.createConnection({
+//	host: "dbRadio",
+//	user: "dbuser",
+//	password: "dbuser",
+//	database: "vinculacion",
+//});
+
+//trabajo local
 const connection = mysql.createConnection({
-	host: "dbRadio",
-	user: "dbuser",
-	password: "dbuser",
+	host: "localhost",
+	user: "root",
+	password: "",
 	database: "vinculacion",
 });
 
-app.get("/", (req, res) => {
-	res.send("Welcome to my API!");
-});
+//middlewares
+const { validarCampos } = require("./middlewares/validateFields");
 
-app.get("/find/solicitud", (req, res) => {
-	try {
-		const sql = "SELECT * FROM solicitudes";
-		connection.query(sql, (error, results) => {
-			if (error) return res.status(400).send(error);
-			if (results.length > 0) {
-				return res.json(results);
-			} else {
-				return res.send("Not result");
-			}
-		});
-	} catch (error) {
-		return res.status(400).send(error);
-	}
+//variables globales
+const date = new Date();
+
+//rutas
+app.get("/", (req, res) => {
+	res.status(200).json({ mensaje: "Welcome to my API! --Solicitudes" });
 });
+//? Encontrar las solicitudes Urgentes
+app.get(
+	"/find/solicitud_urgente",
+	[
+		//es admin
+		header("rol", "El usuario no tiene permiso para realizar la acción.").isIn([
+			"ADMINISTRADOR",
+		]),
+		validarCampos,
+	],
+	(req, res) => {
+		try {
+			const sql = "SELECT * FROM solicitudes WHERE estado_solicitud=?";
+			connection.query(sql, [(estado_solicitud = "URGENTE")], (err, results) => {
+				if (err)
+					return res.status(400).json({
+						err,
+					});
+				if (results.length > 0) {
+					return res.status(200).json(results);
+				} else {
+					return res
+						.status(200)
+						.json({ mensaje: "No se encontraron solicitudes urgentes. " });
+				}
+			});
+		} catch (error) {
+			return res
+				.status(500)
+				.json({ mensaje: "No se puede realizar la operación. " });
+		}
+	}
+);
+
+//? Encontrar las solicitudes Aprobadas
+
+app.get(
+	"/find/solicitud_aprobada",
+	[
+		//verificar si es admin
+		header("rol", "El usuario no tiene permiso para realizar la acción. ").isIn([
+			"ADMINISTRADOR",
+		]),
+		validarCampos,
+	],
+	(req, res) => {
+		try {
+			const sql = "SELECT * FROM solicitudes WHERE estado_solicitud=?";
+			connection.query(
+				sql,
+				[(estado_solicitud = "APROBADA")],
+				(error, results) => {
+					if (error) return res.status(400).json(error);
+					if (results.length > 0) {
+						return res.status(200).json(results);
+					} else {
+						return res
+							.status(200)
+							.json({ mensaje: "No se encontraron solicitudes aprobadas. " });
+					}
+				}
+			);
+		} catch (error) {
+			return res.status(500).json("No se puede realizar la acción. " + error);
+		}
+	}
+);
+
+//? Get de las solicitudes finalizadas
+
+app.get(
+	"/find/solicitud_finalizada",
+	[
+		//verificar si es admin
+		header("rol", "El usuario no tiene permiso para realizar la acción. ").isIn([
+			"ADMINISTRADOR",
+		]),
+		validarCampos,
+	],
+	(req, res) => {
+		try {
+			const sql = "SELECT * FROM solicitudes WHERE estado_solicitud=?";
+			connection.query(
+				sql,
+				[(estado_solicitud = "FINALIZADA")],
+				(error, results) => {
+					if (error) return res.status(400).json(error);
+					if (results.length > 0) {
+						return res.status(200).json(results);
+					} else {
+						return res
+							.status(200)
+							.json({ mensaje: "No se encontraron solicitudes finalizadas. " });
+					}
+				}
+			);
+		} catch (error) {
+			return res.status(500).json("No se puede realizar la acción. " + error);
+		}
+	}
+);
 
 app.get("/findById/:id", (req, res) => {
 	try {
@@ -55,7 +154,7 @@ app.get("/findById/:id", (req, res) => {
 	}
 });
 
-app.post("/create/solicitud", (req, res) => {
+app.post("/create/solicitud", [], (req, res) => {
 	try {
 		const sql = "INSERT INTO solicitudes SET ?";
 
