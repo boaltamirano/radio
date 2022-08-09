@@ -194,19 +194,39 @@ app.post(
 	}
 );
 
-app.delete("/delete/maintenance/:id", (req, res) => {
-	try {
-		const { id } = req.params;
-		const sql = `DELETE FROM equipos WHERE id= ${id}`;
-
-		connection.query(sql, (error) => {
-			if (error) return res.status(400).send(error);
-			res.send("Delete user");
-		});
-	} catch (error) {
-		return res.status(400).send(error);
+app.delete(
+	"/delete/maintenance/:id",
+	[
+		// control de roles el usuario debe ser administrador
+		header("rol", "El Usuario no tiene permisos para realizar esto.").isIn([
+			"ADMINISTRADOR",
+		]),
+	],
+	(req, res) => {
+		try {
+			const { id } = req.params;
+			let sql = `SELECT * FROM mantenimientos WHERE idMantenimiento=${id}`;
+			connection.query(sql, (err, data) => {
+				if (err || data.length < 0)
+					return res
+						.status(400)
+						.json({ mensaje: "No se encontró ningún mantenimiento.", error });
+				sql = `DELETE FROM mantenimientos WHERE id= ${id}`;
+				connection.query(sql, (error) => {
+					if (error)
+						return res
+							.status(400)
+							.json({ mensaje: "No se puede borrar el mantenimiento. " + error });
+					res
+						.status(200)
+						.json({ mensaje: "El mantenimiento se ha eliminado correctamente." });
+				});
+			});
+		} catch (error) {
+			return res.status(400).send(error);
+		}
 	}
-});
+);
 
 // app.put('/update/users/:id', (req, res) => {
 //   const { id } = req.params;
