@@ -100,10 +100,11 @@ app.get(
 	}
 );
 
-//TODO: Get para mantenimientos eliminados
-//? El mantenimiento lo voy a tener o no borrado
-//!Es necesario crear el campo de state_maintenance
-
+/* 
+!Get para mantenimientos eliminados no se realiza
+!El mantenimiento lo voy a tener borrado
+!No es necesario crear el campo de state_maintenance
+*/
 app.post(
 	"/create/maintenance",
 	[
@@ -211,7 +212,7 @@ app.delete(
 					return res
 						.status(400)
 						.json({ mensaje: "No se encontró ningún mantenimiento.", error });
-				sql = `DELETE FROM mantenimientos WHERE id= ${id}`;
+				sql = `DELETE FROM mantenimientos WHERE idMantenimiento= ${id}`;
 				connection.query(sql, (error) => {
 					if (error)
 						return res
@@ -223,7 +224,9 @@ app.delete(
 				});
 			});
 		} catch (error) {
-			return res.status(400).send(error);
+			return res
+				.status(500)
+				.json({ mensaje: "La operación no se pudo realizar. " + error });
 		}
 	}
 );
