@@ -10,16 +10,23 @@ const date = new Date();
 
 
 // MySql
+/*
 const connection = mysql.createConnection({
   host: 'dbRadio',
   user: 'dbuser',
   password: 'dbuser',
   database: 'vinculacion',
 });
-
+*/ //trabajo local
+const connection = mysql.createConnection({
+	host: "localhost",
+	user: "root",
+	password: "",
+	database: "vinculacion",
+});
 
 app.get('/', (req, res) => {
-  res.send('Welcome to my API!');
+  res.status(200).json({mensaje:"EQUIPOS API"});
 });
 
 app.get('/find/equipment', (req, res) => {
@@ -42,7 +49,7 @@ app.get('/find/equipment', (req, res) => {
 app.get('/findById/:id', (req, res) => {
   try {
       const { id } = req.params;
-      const sql = `SELECT * FROM equipos WHERE id = ${id}`;
+      const sql = `SELECT * FROM equipos WHERE idEquipo = ${id}`;
       connection.query(sql, (error, result) => {
         if (error) return res.status(400).send(error);
     
@@ -119,7 +126,7 @@ app.delete('/delete/equipment/:id', (req, res) => {
 
 
 connection.connect(error => {
-  if (error) return res.status(400).send(error);
+  if (error) throw error;
   console.log('Database server running!');
 });
 
