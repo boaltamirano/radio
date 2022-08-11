@@ -67,11 +67,13 @@ app.get(
 		}
 	}
 );
-
-//? Encontrar las solicitudes Aprobadas
+//*ADMINISTRADOR
+//TODO: Aprobar las solicitudes urgentes
+//TODO: Rechazar solicitud urgente
+//? Encontrar las solicitudes Pendientes
 
 app.get(
-	"/find/solicitud_aprobada",
+	"/find/solicitud_pendiente",
 	[
 		//verificar si es admin
 		header("rol", "El usuario no tiene permiso para realizar la acción. ").isIn([
@@ -84,7 +86,45 @@ app.get(
 			const sql = "SELECT * FROM solicitudes WHERE estado_solicitud=?";
 			connection.query(
 				sql,
-				[(estado_solicitud = "APROBADA")],
+				[(estado_solicitud = "ESPERANDO APROBACION")],
+				(error, results) => {
+					if (error) return res.status(400).json(error);
+					if (results.length > 0) {
+						return res.status(200).json(results);
+					} else {
+						return res
+							.status(200)
+							.json({ mensaje: "No se encontraron solicitudes pendientes. " });
+					}
+				}
+			);
+		} catch (error) {
+			return res.status(500).json("No se puede realizar la acción. " + error);
+		}
+	}
+);
+
+//TODO: Solicitud de aprobación
+//TODO: Eliminar solicitud pendiente
+
+//? Encontrar las solicitudes Aprobadas & EN PROCESO
+
+app.get(
+	"/find/solicitud_aprobada",
+	[
+		//verificar si es admin
+		header("rol", "El usuario no tiene permiso para realizar la acción. ").isIn([
+			"ADMINISTRADOR",
+		]),
+		validarCampos,
+	],
+	(req, res) => {
+		try {
+			const sql =
+				"SELECT * FROM solicitudes WHERE estado_solicitud=? OR estado_solicitud=?";
+			connection.query(
+				sql,
+				[(estado_solicitud = "APROBADO"), (estado_solicitud = "EN PROCESO")],
 				(error, results) => {
 					if (error) return res.status(400).json(error);
 					if (results.length > 0) {
@@ -101,6 +141,11 @@ app.get(
 		}
 	}
 );
+
+//TODO: Generar orden de mantenimiento
+//TODO: PDF de orden de mantenimiento
+//TODO: Generar solicitud de finalización
+//TODO: Eliminar las solicitudes Aprobadas & EN PROCESO
 
 //? Get de las solicitudes finalizadas
 
@@ -135,6 +180,10 @@ app.get(
 		}
 	}
 );
+
+//TODO:Ver Solicitud Finalizada
+//TODO: PDF Mantenimiento Finalizado
+//TODO:Eliminar las solicitudes Finalizadas
 
 app.get("/findById/:id", (req, res) => {
 	try {
