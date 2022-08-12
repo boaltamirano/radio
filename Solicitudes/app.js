@@ -212,25 +212,53 @@ app.post(
 			"USUARIO",
 		]),
 		//validar area
-		check("area", "El area no es valida").isIn([
+		check("solicitud_area_mantenimiento", "El area no es valida").isIn([
 			"SECRETARIA",
 			"EDICION",
 			"GRABACION",
 			"MASTER AM",
 			"MASTER FM",
 		]),
-		//validar email
-		check(""),
 		//validar hora de solicitud
-
+		check(
+			"solicitud_hora_mantenimiento",
+			"La hora del mantenimiento es necesaria."
+		)
+			.not()
+			.isEmpty(),
 		//validar fecha de solicitud
-
+		check(
+			"solicitud_fecha_mantenimiento",
+			"La fecha del mantenimiento es necesaria."
+		)
+			.not()
+			.isEmpty(),
 		//validar partes
-
+		check("parte_solicitud").isIn([
+			"TECLADOS",
+			"MONITORES",
+			"PARLANTES",
+			"MOUSE",
+			"CONSOLAS",
+			"MICRÓFONOS",
+			"CPU",
+			"SERVIDORES",
+			"IMPRESORAS",
+		]),
 		//validar motivo
-
+		check(
+			"solicitud_motivo_mantenimiento",
+			"El motivo del mantenimiento es necesaria."
+		)
+			.not()
+			.isEmpty(),
 		//validar observaciones
-
+		check(
+			"solicitud_observaciones_mantenimiento",
+			"La observación del mantenimiento es necesario."
+		)
+			.not()
+			.isEmpty(),
 		validarCampos,
 	],
 	(req, res) => {
@@ -238,13 +266,13 @@ app.post(
 			const sql = "INSERT INTO solicitudes SET ?";
 
 			const customerObj = {
-				solicitud_fecha_mantenimiento: req.body.solicitud_fecha_mantenimiento || "",
-				solicitud_hora_mantenimiento: req.body.solicitud_hora_mantenimiento || "",
-				solicitud_area_mantenimiento: req.body.solicitud_area_mantenimiento || "",
-				solicitud_motivo_mantenimiento:
-					req.body.solicitud_motivo_mantenimiento || "",
+				solicitud_hora_mantenimiento: req.body.solicitud_hora_mantenimiento,
+				solicitud_fecha_mantenimiento: req.body.solicitud_fecha_mantenimiento,
+				solicitud_area_mantenimiento: req.body.solicitud_area_mantenimiento,
+				solicitud_motivo_mantenimiento: req.body.solicitud_motivo_mantenimiento,
 				solicitud_observaciones_mantenimiento:
-					req.body.solicitud_observaciones_mantenimiento || "",
+					req.body.solicitud_observaciones_mantenimiento,
+				parte_solicitud: req.body.parte_solicitud,
 				tiempo_duracion: req.body.tiempo_duracion || "",
 				hora_salida_solicitud: req.body.hora_salida_solicitud || "",
 				hora_regreso_solicitud: req.body.hora_regreso_solicitud || "",

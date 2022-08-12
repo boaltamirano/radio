@@ -87,13 +87,16 @@ hora_salida_solicitud DATE,
 hora_regreso_solicitud DATE,
 estado_solicitud varchar(15) NOT NULL,
 area_solicitud varchar(15) NOT NULL,
+parte_solicitud varchar(15) NOT NULL,
 updated_At varchar(100) NOT NULL,
 deleted_At varchar(100) NOT NULL,
 id_Equipo int,
 id_Mantenimiento int,
 id_Usuario int,
+id_Componente int,
 PRIMARY KEY(idSolicitud),
 FOREIGN KEY (id_Equipo) REFERENCES equipos(idEquipo),
 FOREIGN KEY (id_Mantenimiento) REFERENCES mantenimientos(idMantenimiento),
-FOREIGN KEY (id_Usuario) REFERENCES usuarios(idUsuario)
+FOREIGN KEY (id_Usuario) REFERENCES usuarios(idUsuario),
+FOREIGN KEY (id_Componente) REFERENCES componentes(idComponente)
 );
