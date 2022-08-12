@@ -160,7 +160,7 @@ app.get(
 	],
 	(req, res) => {
 		try {
-			const sql = "SELECT * FROM solicitudes WHERE estado_solicitud=?";
+			const sql = "SELECT  FROM solicitudes ss WHERE estado_solicitud=?";
 			connection.query(
 				sql,
 				[(estado_solicitud = "FINALIZADA")],
@@ -222,9 +222,7 @@ app.post(
 		check(
 			"solicitud_fecha_mantenimiento",
 			"La fecha del mantenimiento es necesaria."
-		)
-			.not()
-			.isEmpty(),
+		).isDate(),
 		//validar area
 		check("solicitud_area_mantenimiento", "El area no es valida").isIn([
 			"SECRETARIA",
@@ -248,7 +246,7 @@ app.post(
 			.not()
 			.isEmpty(),
 		//validar partes
-		check("parte_solicitud").isIn([
+		check("parte_solicitud", "La parte es incorrecta.").isIn([
 			"TECLADOS",
 			"MONITORES",
 			"PARLANTES",
@@ -263,39 +261,70 @@ app.post(
 		check("estado_solicitud", "El estado de la solicitud es incorrecta.").isIn([
 			"URGENTE",
 			"ESPERANDO APROBACION",
-			"EN PROCESO",
-			"APROBADA",
-			"FINALIZADA",
 		]),
 		//mensajes de error de validaciones
 		validarCampos,
 	],
 	(req, res) => {
 		try {
-			const sql = "INSERT INTO solicitudes SET ?";
+			/*
+			?Claves Foraneas
+			Equipo
+			Mantenimiento
+			Usuario
+			Componente
+			SELECT * FROM solicitudes ss INNER JOIN usuarios us ON ss.id_Usuario=us.idUsuario
+			*/
+			//filtro de solicitud creada por hora y fecha
+			let sql =
+				"SELECT * FROM solicitudes WHERE solicitud_hora_mantenimiento=? AND solicitud_fecha_mantenimiento=? AND solicitud_area_mantenimiento=? AND parte_solicitud=?";
 
-			const customerObj = {
-				solicitud_hora_mantenimiento: req.body.solicitud_hora_mantenimiento,
-				solicitud_fecha_mantenimiento: req.body.solicitud_fecha_mantenimiento,
-				solicitud_area_mantenimiento: req.body.solicitud_area_mantenimiento,
-				solicitud_motivo_mantenimiento: req.body.solicitud_motivo_mantenimiento,
-				solicitud_observaciones_mantenimiento:
-					req.body.solicitud_observaciones_mantenimiento,
-				parte_solicitud: req.body.parte_solicitud,
-				estado_solicitud: req.body.estado_solicitud,
-				tiempo_duracion: req.body.tiempo_duracion || "",
-				hora_salida_solicitud: req.body.hora_salida_solicitud || "",
-				hora_regreso_solicitud: req.body.hora_regreso_solicitud || "",
-				updated_At: date,
-				deleted_At: req.body.deleted_At || "",
-			};
+			connection.query(
+				sql,
+				[
+					(solicitud_hora_mantenimiento = req.body.solicitud_hora_mantenimiento),
+					(solicitud_fecha_mantenimiento = req.body.solicitud_fecha_mantenimiento),
+					(solicitud_area_mantenimiento = req.body.solicitud_area_mantenimiento),
+					(parte_solicitud = req.body.parte_solicitud),
+				],
+				(error, data) => {
+					if (error) return res.status(400).json({ error });
+					if (data.length != 0) {
+						return res
+							.status(400)
+							.json({ mensaje: "La solicitud ya ha sido creada." });
+					} else {
+						sql = "INSERT INTO solicitudes SET ?";
 
-			connection.query(sql, customerObj, (error) => {
-				if (error) return res.status(400).send(error);
-				res.send("Solicitud created!");
-			});
+						const customerObj = {
+							solicitud_hora_mantenimiento: req.body.solicitud_hora_mantenimiento,
+							solicitud_fecha_mantenimiento: req.body.solicitud_fecha_mantenimiento,
+							solicitud_area_mantenimiento: req.body.solicitud_area_mantenimiento,
+							solicitud_motivo_mantenimiento: req.body.solicitud_motivo_mantenimiento,
+							solicitud_observaciones_mantenimiento:
+								req.body.solicitud_observaciones_mantenimiento,
+							parte_solicitud: req.body.parte_solicitud,
+							estado_solicitud: req.body.estado_solicitud,
+							tiempo_duracion: req.body.tiempo_duracion || "",
+							hora_salida_solicitud: req.body.hora_salida_solicitud || "",
+							hora_regreso_solicitud: req.body.hora_regreso_solicitud || "",
+							updated_At: date,
+							deleted_At: req.body.deleted_At || "",
+						};
+
+						connection.query(sql, customerObj, (error) => {
+							if (error)
+								return res
+									.status(400)
+									.json({ mensaje: "No se puede generar la solicitud. " + error });
+
+							res.status(200).json({ mensaje: "La solicitud ha sido creada." });
+						});
+					}
+				}
+			);
 		} catch (error) {
-			return res.status(400).send(error);
+			return res.status(500).json({ mensaje: "Algo salió mal. " + error });
 		}
 	}
 );
