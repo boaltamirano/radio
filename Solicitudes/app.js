@@ -124,7 +124,7 @@ app.get(
 				"SELECT * FROM solicitudes WHERE estado_solicitud=? OR estado_solicitud=?";
 			connection.query(
 				sql,
-				[(estado_solicitud = "APROBADO"), (estado_solicitud = "EN PROCESO")],
+				[(estado_solicitud = "APROBADA"), (estado_solicitud = "EN PROCESO")],
 				(error, results) => {
 					if (error) return res.status(400).json(error);
 					if (results.length > 0) {
@@ -211,14 +211,6 @@ app.post(
 		header("rol", "Para crear una solicitud debe tener el rol de Usuario.").isIn([
 			"USUARIO",
 		]),
-		//validar area
-		check("solicitud_area_mantenimiento", "El area no es valida").isIn([
-			"SECRETARIA",
-			"EDICION",
-			"GRABACION",
-			"MASTER AM",
-			"MASTER FM",
-		]),
 		//validar hora de solicitud
 		check(
 			"solicitud_hora_mantenimiento",
@@ -233,17 +225,13 @@ app.post(
 		)
 			.not()
 			.isEmpty(),
-		//validar partes
-		check("parte_solicitud").isIn([
-			"TECLADOS",
-			"MONITORES",
-			"PARLANTES",
-			"MOUSE",
-			"CONSOLAS",
-			"MICRÓFONOS",
-			"CPU",
-			"SERVIDORES",
-			"IMPRESORAS",
+		//validar area
+		check("solicitud_area_mantenimiento", "El area no es valida").isIn([
+			"SECRETARIA",
+			"EDICION",
+			"GRABACION",
+			"MASTER AM",
+			"MASTER FM",
 		]),
 		//validar motivo
 		check(
@@ -259,6 +247,27 @@ app.post(
 		)
 			.not()
 			.isEmpty(),
+		//validar partes
+		check("parte_solicitud").isIn([
+			"TECLADOS",
+			"MONITORES",
+			"PARLANTES",
+			"MOUSE",
+			"CONSOLAS",
+			"MICRÓFONOS",
+			"CPU",
+			"SERVIDORES",
+			"IMPRESORAS",
+		]),
+		//validación de estado
+		check("estado_solicitud", "El estado de la solicitud es incorrecta.").isIn([
+			"URGENTE",
+			"ESPERANDO APROBACION",
+			"EN PROCESO",
+			"APROBADA",
+			"FINALIZADA",
+		]),
+		//mensajes de error de validaciones
 		validarCampos,
 	],
 	(req, res) => {
@@ -273,11 +282,11 @@ app.post(
 				solicitud_observaciones_mantenimiento:
 					req.body.solicitud_observaciones_mantenimiento,
 				parte_solicitud: req.body.parte_solicitud,
+				estado_solicitud: req.body.estado_solicitud,
 				tiempo_duracion: req.body.tiempo_duracion || "",
 				hora_salida_solicitud: req.body.hora_salida_solicitud || "",
 				hora_regreso_solicitud: req.body.hora_regreso_solicitud || "",
-				estado_solicitud: req.body.estado_solicitud || "",
-				updated_At: date || "",
+				updated_At: date,
 				deleted_At: req.body.deleted_At || "",
 			};
 
