@@ -202,34 +202,66 @@ app.get("/findById/:id", (req, res) => {
 		return res.status(400).send(error);
 	}
 });
+//*USUARIO
+//? Crear Solicitud de Mantenimiento
+app.post(
+	"/create/solicitud",
+	[
+		//validar q sea usuario
+		header("rol", "Para crear una solicitud debe tener el rol de Usuario.").isIn([
+			"USUARIO",
+		]),
+		//validar area
+		check("area", "El area no es valida").isIn([
+			"SECRETARIA",
+			"EDICION",
+			"GRABACION",
+			"MASTER AM",
+			"MASTER FM",
+		]),
+		//validar email
+		check(""),
+		//validar hora de solicitud
 
-app.post("/create/solicitud", [], (req, res) => {
-	try {
-		const sql = "INSERT INTO solicitudes SET ?";
+		//validar fecha de solicitud
 
-		const customerObj = {
-			request_date_maintenance: req.body.request_date_maintenance || "",
-			request_hour_maintenance: req.body.request_hour_maintenance || "",
-			request_area_maintenance: req.body.request_area_maintenance || "",
-			request_motive_maintenance: req.body.request_motive_maintenance || "",
-			request_observations_maintenance:
-				req.body.request_observations_maintenance || "",
-			time_duration: req.body.time_duration || "",
-			hour_exit_request: req.body.hour_exit_request || "",
-			hour_comeback_request: req.body.hour_comeback_request || "",
-			state: req.body.state,
-			updated_At: req.body.updated_At || "",
-			deleted_At: req.body.deleted_At || "",
-		};
+		//validar partes
 
-		connection.query(sql, customerObj, (error) => {
-			if (error) return res.status(400).send(error);
-			res.send("Solicitud created!");
-		});
-	} catch (error) {
-		return res.status(400).send(error);
+		//validar motivo
+
+		//validar observaciones
+
+		validarCampos,
+	],
+	(req, res) => {
+		try {
+			const sql = "INSERT INTO solicitudes SET ?";
+
+			const customerObj = {
+				solicitud_fecha_mantenimiento: req.body.solicitud_fecha_mantenimiento || "",
+				solicitud_hora_mantenimiento: req.body.solicitud_hora_mantenimiento || "",
+				solicitud_area_mantenimiento: req.body.solicitud_area_mantenimiento || "",
+				solicitud_motivo_mantenimiento:
+					req.body.solicitud_motivo_mantenimiento || "",
+				solicitud_observaciones_mantenimiento:
+					req.body.solicitud_observaciones_mantenimiento || "",
+				tiempo_duracion: req.body.tiempo_duracion || "",
+				hora_salida_solicitud: req.body.hora_salida_solicitud || "",
+				hora_regreso_solicitud: req.body.hora_regreso_solicitud || "",
+				estado_solicitud: req.body.estado_solicitud || "",
+				updated_At: date || "",
+				deleted_At: req.body.deleted_At || "",
+			};
+
+			connection.query(sql, customerObj, (error) => {
+				if (error) return res.status(400).send(error);
+				res.send("Solicitud created!");
+			});
+		} catch (error) {
+			return res.status(400).send(error);
+		}
 	}
-});
+);
 
 app.delete("/delete/solicitud/:id", (req, res) => {
 	try {
