@@ -57,6 +57,20 @@ services:
   depends_on:
    - dbRadio
 
+ solicitudes:
+  container_name: solicitudes
+  build:
+   context: ./Solicitudes
+   dockerfile: Dockerfile
+  command: bash -c 'while !</dev/tcp/dbRadio/3306; do sleep 1; done; npm start'
+  restart: on-failure
+  ports:
+   - 8006:8006
+  networks:
+   - radio
+  depends_on:
+   - dbRadio
+
  dbRadio:
   container_name: dbRadio
   image: mysql
@@ -69,12 +83,12 @@ services:
   networks:
    - radio
   environment:
-   MYSQL_DATABASE: vinculacion
-   MYSQL_ALLOW_EMPTY_PASSWORD: ok
-   MYSQL_ROOT_PASSWORD:
-   MYSQL_USER: root
-   MYSQL_PASSWORD:
-   MYSQL_ROOT_HOST: "%"
+      MYSQL_DATABASE: vinculacion
+      MYSQL_ALLOW_EMPTY_PASSWORD: ok
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_USER: dbuser
+      MYSQL_PASSWORD: dbuser
+      MYSQL_ROOT_HOST: '%'
 
 networks:
  radio:
