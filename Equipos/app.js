@@ -17,7 +17,7 @@ const connection = mysql.createConnection({
   password: 'dbuser',
   database: 'vinculacion',
 });
-*/
+*/ //trabajo local
 const connection = mysql.createConnection({
 	host: "localhost",
 	user: "root",
@@ -26,7 +26,7 @@ const connection = mysql.createConnection({
 });
 
 app.get('/', (req, res) => {
-  res.json({mensaje:'Welcome to my API'});
+  res.status(200).json({mensaje:"EQUIPOS API"});
 });
 
 app.get('/find/equipment', (req, res) => {
@@ -49,7 +49,7 @@ app.get('/find/equipment', (req, res) => {
 app.get('/findById/:id', (req, res) => {
   try {
       const { id } = req.params;
-      const sql = `SELECT * FROM equipos WHERE id = ${id}`;
+      const sql = `SELECT * FROM equipos WHERE idEquipo = ${id}`;
       connection.query(sql, (error, result) => {
         if (error) return res.status(400).json({mensaje:'error'});
     
