@@ -33,16 +33,16 @@ app.get('/find/equipment', (req, res) => {
   try {
     const sql = 'SELECT * FROM equipos';
     connection.query(sql, (error, results) => {
-      if (error) return res.status(400).send(error);
+      if (error) return res.status(400).json({mensaje:'mensaje:error'});
       if (results.length > 0) {
         return res.json(results);
       } else {
-        return res.send('Not result');
+        return res.json({mensaje:'Not result'});
       }
     });
     
   } catch (error) {
-    return res.status(400).send(error);
+    return res.status(400).json({mensaje:'error'});
   }
 });
 
@@ -51,16 +51,16 @@ app.get('/findById/:id', (req, res) => {
       const { id } = req.params;
       const sql = `SELECT * FROM equipos WHERE idEquipo = ${id}`;
       connection.query(sql, (error, result) => {
-        if (error) return res.status(400).send(error);
+        if (error) return res.status(400).json({mensaje:'error'});
     
         if (result.length > 0) {
           res.json(result);
         } else {
-          res.send('Not result');
+          res.json({mensaje:'error'});
         }
       });
   } catch (error) {
-      return res.status(400).send(error);
+      return res.status(400).json({mensaje:'error'});
   }
 });
 
@@ -89,11 +89,11 @@ app.post('/create/equipment', (req, res) => {
     };
 
     connection.query(sql, customerObj, error => {
-      if (error) return res.status(400).send(error);
+      if (error) return res.status(400).json({mensaje:'error'});
       res.send('User created!');
     });
   } catch (error) {
-    return res.status(400).send(error);
+    return res.status(400).json({mensaje:'error'});
   }
   
 });
@@ -104,11 +104,11 @@ app.delete('/delete/equipment/:id', (req, res) => {
     const sql = `DELETE FROM equipos WHERE id= ${id}`;
   
     connection.query(sql, error => {
-      if (error) return res.status(400).send(error);
+      if (error) return res.status(400).json({mensaje:'error'});
       res.send('Delete user');
     });
   } catch (error) {
-    return res.status(400).send(error);
+    return res.status(400).json({mensaje:'error'});
   }
 });
 
